@@ -91,21 +91,25 @@ public class ReadBMP {
     	
     	System.out.println(entryImage.length);
     	
+//    	imgPixels = new byte[entryImage.length - 55];
+//    	for(int i = 55; i < entryImage.length; i ++) {
+//    		imgPixels[i - 55] = entryImage[i];
+//    	}
     	imgPixels = new byte[entryImage.length - 55];
-    	for(int i = 55; i < entryImage.length; i ++) {
-    		imgPixels[i - 55] = entryImage[i];
+    	for (int i = entryImage.length - 1, j = 0; i > 55 && j < imgPixels.length - 1; i --, j++) {
+    		imgPixels[j] = entryImage[i];
     	}
+//    	for(int i = 0; i < this.height- 1 ; i ++ ) {
+//    		for(int j = this.width - 1, k = 0; j > (this.width/2) - 1 && k < this.width/2 ; j--, k++) {
+//    				pixels[(i * width) + j] = getPixel(i * 3, (k * 3) );
+//    				pixels[(i * width) + k] = getPixel(i * 3, (j * 3) );
+//    		}
+//    	}
+//    	
     	for(int i = 0; i < this.height- 1 ; i ++ ) {
-    		for(int j = 0; j < this.width - 1 ; j++) {
-    			//if((i * width) + j * 3 < imgPixels.length) {
-    				pixels[(i * width) + j] = getPixel(i * 3, (j * 3));
-    				//if(j >= 510 || i >= 1 )
-    					//System.out.println(Integer.toHexString(getPixel(i, j * 3)));
-    				
-    			//}
-    			//else {
-    				//System.out.println("A lot a lot" + (i * height) + j );
-    			//}
+    		for(int j = this.width - 1, k = 0; j > (this.width/2) - 1 && k < this.width/2 ; j--, k++) {
+    				pixels[(i * width) + j] = getGreen(i * 3, (k * 3) );
+    				pixels[(i * width) + k] = getGreen(i * 3, (j * 3)) ;
     		}
     	}
     	
@@ -118,8 +122,23 @@ public class ReadBMP {
     
     public int getPixel(int i, int j) {
 		
-		return (imgPixels[i * width + (j)] & 0xFF) << 8 | (imgPixels[i * width + (j + 1)] & 0xFF) << 16 | (imgPixels[i * width + j + 2] & 0xFF);
+		return (imgPixels[i * width + (j)] & 0xFF ) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF ) << 8 | (imgPixels[i * width + j + 2] & 0xFF );
 	}
+    
+    public int getBlue(int i, int j) {
+		
+  		return (((imgPixels[i * width + (j)] & 0xFF) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF) << 8 | (imgPixels[i * width + j + 2] & 0xFF)) & 0xFF);
+  	}
+    
+    public int getGreen(int i, int j) {
+		
+  		return (((imgPixels[i * width + (j)] & 0xFF) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF) << 8 | (imgPixels[i * width + j + 2] & 0xFF)) & 0xFF00);
+  	}
+    
+    public int getRed(int i, int j) {
+		
+  		return (((imgPixels[i * width + (j)] & 0xFF) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF) << 8 | (imgPixels[i * width + j + 2] & 0xFF)) & 0xFF0000);
+  	}
     
     public int getWidth() {
     	return width;
@@ -141,7 +160,7 @@ public class ReadBMP {
     	}
     	
 
-    	ImageIO.write(bufferedImage, "BMP", new File("res/tes2rt.bmp"));
+    	ImageIO.write(bufferedImage, "BMP", new File("res/som.bmp"));
     
     }
   
