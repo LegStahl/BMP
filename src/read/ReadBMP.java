@@ -26,6 +26,7 @@ public class ReadBMP {
     private String bfType = null;
     private int adress = 0;
     private int[] pixels = null;
+    private int[] pixelsYCbCr = null;
     
 
     public ReadBMP(String imgLoad, String imgSave) throws IOException{
@@ -78,10 +79,9 @@ public class ReadBMP {
     	height = height ^ ((int)massiv[25] << 24);
     	
     	System.out.println(width + " " + height);
-//    	width = 512;
-//    	height = 768;
+
     	createMassivPixels();
-    	//createImG();
+    	
     
     }
     
@@ -108,21 +108,34 @@ public class ReadBMP {
 //    	
     	for(int i = 0; i < this.height- 1 ; i ++ ) {
     		for(int j = this.width - 1, k = 0; j > (this.width/2) - 1 && k < this.width/2 ; j--, k++) {
-    				pixels[(i * width) + j] = getGreen(i * 3, (k * 3) );
-    				pixels[(i * width) + k] = getGreen(i * 3, (j * 3)) ;
+    				pixels[(i * width) + j] = getPixel(i , k  );
+    				pixels[(i * width) + k] = getPixel(i , j ) ;
     		}
     	}
     	
+    	pixelsYCbCr = new int[width * height];
+    	
+    	for(int i = 0; i < this.height- 1 ; i ++ ) {
+    		for(int j = this.width - 1, k = 0; j > (this.width/2) - 1 && k < this.width/2 ; j--, k++) {
+    				pixelsYCbCr[(i * width) + k] = getCr(i , k  );
+    				pixelsYCbCr[(i * width) + j] = getCr(i , j ) ;
+    		}
+    	}
     	
  
     	createImG();
+    	createImGYCb();
 
     	System.out.println("Success2");
     }
     
+    public int getPixelInCrCbY(int x, int y) {
+    	return (getYComp(x, y) & 0xFF) << 16 | (getCbComp(x, y) & 0xFF) << 8 | (getCrComp(x, y) & 0xFF);
+    }
+    
     public int getPixel(int i, int j) {
 		
-		return (imgPixels[i * width + (j)] & 0xFF ) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF ) << 8 | (imgPixels[i * width + j + 2] & 0xFF );
+		return (imgPixels[(i * 3) * width + (j * 3)] & 0xFF ) << 16 | (imgPixels[(i * 3) * width + ((j * 3) + 1)] & 0xFF ) << 8 | (imgPixels[(i * 3) * width + (j * 3) + 2] & 0xFF );
 	}
     
     public int getBlue(int i, int j) {
@@ -140,6 +153,30 @@ public class ReadBMP {
   		return (((imgPixels[i * width + (j)] & 0xFF) << 16 | (imgPixels[i * width + (j + 1)] & 0xFF) << 8 | (imgPixels[i * width + j + 2] & 0xFF)) & 0xFF0000);
   	}
     
+    public int getY(int i, int j) {
+    	return (getYComp(i, j)  << 16) | (getYComp(i, j)  << 8) | (getYComp(i, j)) & 0xFF ;
+    }
+    
+    public int getCb(int i, int j) {
+    	return (getCbComp(i, j)  << 16) | (getCbComp(i, j)  << 8) | (getCbComp(i, j)) ;
+    }
+    
+    public int getCr(int i, int j) {
+    	return (getCrComp(i, j) << 16) | (getCrComp(i, j) << 8) | (getCrComp(i, j)) ;
+    }
+    
+    public int getRedColour(int x, int y) {
+    	return (pixels[x * width + y] >> 16) & 0xFF;
+    }
+    
+    public int getGreenColour(int x, int y) {
+    	return (pixels[x * width + y] >> 8) & 0xFF;
+    }
+    
+    public int getBlueColour(int x, int y) {
+    	return (pixels[x * width + y]) & 0xFF;
+    }
+    
     public int getWidth() {
     	return width;
     }
@@ -148,6 +185,17 @@ public class ReadBMP {
     	return height;
     }
     
+    public int getYComp(int x, int y) {
+    	return ((int)((double)getRedColour(x, y) * 0.299 + 0.587 * (double)getGreenColour(x, y) + 0.114 * (double)getBlueColour(x, y)))& 0xFF ;
+    }
+    
+    public int getCbComp(int x, int y) {
+    	return ((int)(0.5643 * (getBlueColour(x, y) - getYComp(x, y)) + 128)) & 0xFF;
+    }
+    
+    public int getCrComp(int x, int y) {
+    	return ((int)(0.7132 * (getRedColour(x, y) - getYComp(x, y)) + 128)) & 0xFF;
+    }
 
     
     public void createImG() throws IOException {
@@ -160,7 +208,21 @@ public class ReadBMP {
     	}
     	
 
-    	ImageIO.write(bufferedImage, "BMP", new File("res/som.bmp"));
+    	ImageIO.write(bufferedImage, "BMP", new File("res/som2.bmp"));
+    
+    }
+    
+    public void createImGYCb() throws IOException {
+    	BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+ 
+    	for(int i = 0; i < height; i++) {
+    		for(int j = 0; j < width; j++) {
+    			bufferedImage.setRGB(j, i, pixelsYCbCr[(i * width) + j]);
+    		}
+    	}
+    	
+
+    	ImageIO.write(bufferedImage, "BMP", new File("res/Cr.bmp"));
     
     }
   
